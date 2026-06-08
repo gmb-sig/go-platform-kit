@@ -34,12 +34,16 @@ import (
 type BaseConfiguration struct {
 	*azugocfg.Configuration `mapstructure:",squash"`
 
-	// ServiceName is the logical service id (env SERVICE_NAME). It feeds the
-	// service.name resource attribute, metric labels, and the broker client id.
+	// ServiceName is the logical service id (env SERVICE_NAME). It is the broker
+	// client id and the default label for the project metric helpers.
+	//
+	// The deployment environment is NOT re-declared here: Azugo already owns the
+	// reserved ENVIRONMENT variable (development|test|staging|production) and
+	// drives both the service.environment log field and the OpenTelemetry
+	// deployment.environment resource attribute from app.Env(). Re-binding it with
+	// a different vocabulary only made the two disagree, so the kit defers to
+	// Azugo — read app.Env() when a service needs the environment.
 	ServiceName string `mapstructure:"service_name" validate:"required"`
-	// Environment is the deployment environment (env ENVIRONMENT):
-	// local|dev|staging|prod. Feeds deployment.environment.
-	Environment string `mapstructure:"environment" validate:"required,oneof=local dev staging prod"`
 
 	// Telemetry is the OpenTelemetry configuration section (the standard OTEL_*
 	// env, per azugo.io/opentelemetry). Wired once in platform.Setup; tracing
@@ -75,10 +79,8 @@ func (c *BaseConfiguration) Bind(_ string, v *viper.Viper) {
 	c.Telemetry = corecfg.Bind(c.Telemetry, "telemetry", v)
 	c.Broker = corecfg.Bind(c.Broker, "broker", v)
 
-	v.SetDefault("environment", "local")
-
+	// ENVIRONMENT is bound by Azugo itself (app.Env()); the kit does not shadow it.
 	_ = v.BindEnv("service_name", "SERVICE_NAME")
-	_ = v.BindEnv("environment", "ENVIRONMENT")
 }
 
 // Validate validates the full base configuration. The validator recurses into
