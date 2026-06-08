@@ -57,8 +57,15 @@ type IDs struct {
 func Middleware() azugo.RequestHandlerFunc {
 	return func(next azugo.RequestHandler) azugo.RequestHandler {
 		return func(ctx *azugo.Context) {
-			// 1. Read an inbound correlation id, or mint a new ULID.
+			// 1. Read an inbound correlation id. With none, adopt Azugo's own
+			//    per-request id (ctx.ID(), a ULID) rather than mint a parallel
+			//    one — so the access log's http.request.id and the correlation_id
+			//    on every other line share a single value. newID() is only a
+			//    defensive fallback should no request id be set.
 			cid := strings.TrimSpace(ctx.Header.Get(HeaderCorrelationID))
+			if cid == "" {
+				cid = ctx.ID()
+			}
 			if cid == "" {
 				cid = newID()
 			}

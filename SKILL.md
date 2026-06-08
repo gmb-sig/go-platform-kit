@@ -124,9 +124,9 @@ func (c *Configuration) Validate(valid *validation.Validate) error {
 
 | Env | Purpose |
 |---|---|
-| `SERVICE_NAME` | `service.name`, metric labels, broker client id (**required**) |
-| `ENVIRONMENT` | `local`/`dev`/`staging`/`prod` → `deployment.environment` (**required**) |
-| `LOG_LEVEL`, `LOG_FORMAT` | Azugo log policy (`ecsjson` default in non-local) |
+| `SERVICE_NAME` | broker client id + default project-metric label (**required**) |
+| `ENVIRONMENT` | **Azugo's own** var: `development`/`test`/`staging`/`production`. Drives the `service.environment` log field and the OTel `deployment.environment` via `app.Env()`. The kit does **not** re-declare it — set Azugo's vocabulary, not `local`/`prod` |
+| `LOG_LEVEL`, `LOG_FORMAT` | Azugo log policy (`ecsjson` default outside `development`) |
 | `METRICS_ENABLED` | Azugo metrics toggle |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP collector — **unset ⇒ tracing off** |
 | `OTEL_SDK_DISABLED`, `OTEL_RESOURCE_ATTRIBUTES` | Standard OTel SDK knobs |
@@ -137,14 +137,24 @@ func (c *Configuration) Validate(valid *validation.Validate) error {
 Secrets follow the Vault-agent convention: `<NAME>_FILE` points at the secret file
 (`config.LoadRemoteSecret`). Each service still owns its own sub-config.
 
+> `service.name`/`service.version` in logs come from Azugo's `server.Options.AppName`
+> /`AppVer`, not `SERVICE_NAME` — set them consistently if you want them to match.
+
 ---
 
 ## 3. Correlation — the project-only piece
 
-`platform.Setup` installs `correlation.Middleware()`. For every request it reads (or
-mints a ULID) `correlation_id`, adopts the OTel `trace_id`/`span_id`, binds all three to
-the context, **adds them to every log line**, and echoes `X-Correlation-ID` on the
-response.
+`platform.Setup` installs `correlation.Middleware()`. For every request it resolves the
+`correlation_id` — the inbound `X-Correlation-ID` header, else **Azugo's own per-request
+id (`ctx.ID()`)** rather than a parallel ULID — adopts the OTel `trace_id`/`span_id`,
+binds all three to the context, **adds them to every log line emitted via `ctx.Log()`**,
+and echoes `X-Correlation-ID` on the response.
+
+> Note: Azugo's built-in **access log** (`middleware.RequestLogger`) writes through the
+> *app* logger, not `ctx.Log()`, so it carries only its own `http.request.id` — which,
+> because the kit adopts `ctx.ID()`, holds the *same value* as `correlation_id`. So one id
+> still joins the access log to every handler/audit line; correlation appears as a named
+> `correlation_id` field on the latter.
 
 In handlers, read the ids and pass them onward:
 

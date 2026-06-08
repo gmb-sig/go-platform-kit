@@ -93,8 +93,8 @@ func TestPropagation_LogFields(t *testing.T) {
 	qt.Check(t, qt.Equals(str(entry.ContextMap()[correlation.LogKeyCorrelationID]), "corr-log"))
 }
 
-// TestMiddleware_GeneratesIDWhenAbsent: with no inbound header a new ULID is
-// minted and echoed back.
+// TestMiddleware_GeneratesIDWhenAbsent: with no inbound header the correlation
+// id adopts Azugo's own per-request id (ctx.ID(), a 26-char ULID) and echoes it.
 func TestMiddleware_GeneratesIDWhenAbsent(t *testing.T) {
 	app := azugo.NewTestApp()
 	app.Use(correlation.Middleware())
