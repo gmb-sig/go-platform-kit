@@ -7,6 +7,7 @@ require (
 	azugo.io/core v0.32.0
 	azugo.io/opentelemetry v0.32.0
 	github.com/VictoriaMetrics/metrics v1.43.2
+	github.com/go-quicktest/qt v1.102.0
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/spf13/viper v1.21.0
 	github.com/valyala/fasthttp v1.71.0
@@ -27,7 +28,6 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.2 // indirect
-	github.com/go-quicktest/qt v1.102.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-json v0.10.6 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
