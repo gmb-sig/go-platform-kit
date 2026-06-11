@@ -9,8 +9,19 @@ and adds the project glue Azugo cannot know about (the correlation model linking
 to the three audit regimes, PII/secret log redaction, and the frozen broker event
 envelope). It re-implements none of Azugo's logger, metrics, or tracer.
 
-See [`SKILL.md`](./SKILL.md) for usage conventions and the
-[Platform Kit Specification](../eSignature-Portal-Platform-Kit-Spec.md) for the design.
+See [`SKILL.md`](./SKILL.md) for usage conventions. Design references (§-numbers in doc
+comments) point to the project's internal *Platform Kit Specification* and *Audit & Logging
+Design* documents.
+
+**Scope (a v1 commitment):** this kit targets [Azugo](https://azugo.io) services. Its
+entrypoints take `*azugo.App` / `*azugo.Context` by design, and it is version-pinned in
+lockstep with `azugo.io/*`. It is not a general-purpose Go toolkit; non-Azugo stacks should
+implement the (small, documented) envelope contract directly.
+
+**Event envelope stability:** from v1.0.0 the `broker.Envelope` JSON schema is
+**append-only** — new optional fields may be added; existing fields and attribute keys are
+never renamed or removed. `Envelope.DataSubjects` values must be **pseudonymous internal
+identity references**, never national identifiers, names, or e-mail addresses.
 
 ## Install
 
@@ -47,7 +58,7 @@ tracing, and the correlation middleware installed.
 | `observability` | log redaction, metric naming, OpenTelemetry enablement |
 | `correlation` | `correlation_id`/`trace_id` middleware + context helpers |
 | `errors` | error taxonomy + `err:domain:reason` → Azugo HTTP error mapping |
-| `broker` | `Publisher`/`Consumer` over the frozen §8.1 event envelope |
+| `broker` | `Publisher`/`Dispatch` + `IdempotencyStore` over the frozen event envelope (at-least-once handling, mark-after-success dedup) |
 | `httpclient` | outbound defaults + correlation header propagation |
 
 ## Develop

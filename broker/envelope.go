@@ -75,7 +75,13 @@ type Envelope struct {
 	EventType  string     `json:"event_type"`
 
 	// Subject of the event.
-	Actor        *Actor    `json:"actor,omitempty"`
+	Actor *Actor `json:"actor,omitempty"`
+	// DataSubjects identify the people the event concerns, for subject
+	// indexing. Values MUST be pseudonymous internal identity references (e.g.
+	// the identity-record ULID) — NEVER national identifiers, personal codes,
+	// names, or e-mail addresses. These values flow into broker streams, SIEM
+	// logs, and audit stores; key-based redaction cannot catch identifying
+	// values placed here.
 	DataSubjects []string  `json:"data_subjects,omitempty"`
 	Resource     *Resource `json:"resource,omitempty"`
 	Operation    Operation `json:"operation,omitempty"`

@@ -34,7 +34,7 @@ func TestPropagation_EndToEnd(t *testing.T) {
 		ctx.JSON(map[string]any{
 			"id":            ids.CorrelationID,
 			"envelope_corr": ev.CorrelationID,
-			"opt_present":   httpclient.WithCorrelation(ctx) != nil,
+			"opt_present":   len(httpclient.CorrelationOptions(ctx)) == 1,
 		})
 	})
 

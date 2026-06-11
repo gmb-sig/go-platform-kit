@@ -37,7 +37,9 @@ const (
 
 // IncCounter increments the named counter with the given labels, registering it
 // on first use (VictoriaMetrics/metrics — the same registry Azugo exposes at
-// /metrics).
+// /metrics). Label VALUES must be low-cardinality (service names, topics,
+// outcomes — never ids, urls, or user input): every distinct label set creates
+// a new time series.
 func IncCounter(name string, labels map[string]string) {
 	metrics.GetOrCreateCounter(name + formatLabels(labels)).Inc()
 }
