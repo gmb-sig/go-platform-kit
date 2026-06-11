@@ -217,10 +217,9 @@ import "github.com/gmb-sig/go-platform-kit/httpclient"
 func (c *DocumentClient) Fetch(ctx *azugo.Context, id string) (*Doc, error) {
     client := httpclient.Outbound(ctx, c.baseURL) // == ctx.HTTPClient().WithBaseURL(...)
     var doc Doc
-    err := client.GetJSON("/v1/documents/"+id, &doc,
-        httpclient.WithCorrelation(ctx), // propagate correlation_id
-        // authClient.AttachToken(ctx), // go-authbyte attaches DPoP + token
-    )
+    opts := httpclient.CorrelationOptions(ctx) // propagate correlation_id (0 or 1 options)
+    // opts = append(opts, authClient.AttachToken(ctx)) // go-authbyte attaches DPoP + token
+    err := client.GetJSON("/v1/documents/"+id, &doc, opts...)
     return &doc, err
 }
 ```
@@ -253,12 +252,14 @@ func (r *router) onPreviewed(ctx *azugo.Context, env, doc string) error {
 }
 ```
 
-Consume idempotently (at-least-once delivery assumed):
+Consume idempotently (at-least-once delivery assumed). The event id is marked processed
+**only after the handler succeeds** — a failed handling is redelivered, so the handler
+itself must be idempotent (e.g. `INSERT … ON CONFLICT (event_id) DO NOTHING`):
 
 ```go
-store := broker.NewMemoryIdempotencyStore() // back with Redis for multi-replica
+store := broker.NewMemoryIdempotencyStore() // bounded FIFO; back with Redis for multi-replica
 err := broker.Dispatch(ctx, payload, store, func(ctx context.Context, ev *broker.Envelope) error {
-    // handle exactly once per ev.EventID
+    // idempotent handling, keyed on ev.EventID
     return nil
 })
 ```
@@ -304,6 +305,6 @@ If it is not a genuine every-service concern, it does not belong in `go-platform
 | Base config | `config.New()` / `*config.BaseConfiguration` | embed + `BaseConfiguration.Bind/Validate` |
 | Correlation | `correlation.ID/FromContext` | middleware auto-installed by Setup |
 | Errors | `errors.FromResultCode` / `errors.HTTP` | `ctx.Error(...)` maps to status + safe msg |
-| Outbound | `httpclient.Outbound` + `WithCorrelation` | over `ctx.HTTPClient()` |
+| Outbound | `httpclient.Outbound` + `CorrelationOptions` | over `ctx.HTTPClient()` |
 | Broker | `broker.NewPublisher` / `broker.Dispatch` | §8.1 `Envelope`, idempotent consume |
 | Redaction | automatic | `ctx.Log()`; policy via `Options.Redaction` |

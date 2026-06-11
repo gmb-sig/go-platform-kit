@@ -30,13 +30,14 @@ const (
 	DefaultMaxRetries = 2
 )
 
-// WithCorrelation returns an Azugo HTTP request option that propagates the
-// request's correlation_id to the upstream service. It returns nil (a no-op
-// option, which Azugo's request pipeline skips) when no correlation id is bound
-// — e.g. outside an inbound request.
-func WithCorrelation(ctx *azugo.Context) http.RequestOption {
+// CorrelationOptions returns the Azugo HTTP request options that propagate the
+// request's correlation_id to the upstream service — one option when a
+// correlation id is bound, an empty slice otherwise. Spread it into the request
+// call (variadic expansion of an empty slice is a no-op), which avoids ever
+// passing a typed-nil option into the request pipeline.
+func CorrelationOptions(ctx *azugo.Context) []http.RequestOption {
 	if cid := correlation.ID(ctx); cid != "" {
-		return http.WithHeader(correlation.HeaderCorrelationID, cid)
+		return []http.RequestOption{http.WithHeader(correlation.HeaderCorrelationID, cid)}
 	}
 
 	return nil
@@ -44,11 +45,12 @@ func WithCorrelation(ctx *azugo.Context) http.RequestOption {
 
 // Outbound returns the context-bound HTTP client targeting baseURL. The client
 // is already OpenTelemetry-instrumented (via azugo.io/opentelemetry) and
-// inherits the inbound request's deadline and tracing. Pass WithCorrelation(ctx)
-// — and, for authenticated calls, go-authbyte's token option — to each request:
+// inherits the inbound request's deadline and tracing. Spread
+// CorrelationOptions(ctx) — and, for authenticated calls, go-authbyte's token
+// option — into each request:
 //
 //	c := httpclient.Outbound(ctx, "https://document-svc")
-//	err := c.GetJSON("/v1/documents/"+id, &doc, httpclient.WithCorrelation(ctx))
+//	err := c.GetJSON("/v1/documents/"+id, &doc, httpclient.CorrelationOptions(ctx)...)
 func Outbound(ctx *azugo.Context, baseURL string) http.Client {
 	return ctx.HTTPClient().WithBaseURL(baseURL)
 }

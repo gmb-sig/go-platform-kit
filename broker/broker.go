@@ -87,6 +87,11 @@ func (p *Publisher) Publish(ctx *azugo.Context, topic string, ev *Envelope) erro
 // where they are not already set: a fresh ULID event id, the current time, and
 // the correlation_id/trace_id bound to the context. It also strips
 // bearer-token-shaped attribute keys — events carry correlation, never tokens.
+//
+// Mutation contract: Stamp mutates ev (that is its job), but it never mutates
+// the map the caller passed as Attributes — when stripping is needed, ev's
+// Attributes is replaced with a filtered copy, so a caller-owned map is safe to
+// reuse.
 func Stamp(ctx *azugo.Context, ev *Envelope) {
 	if ev.EventID == "" {
 		ev.EventID = ulid.Make().String()
@@ -144,23 +149,38 @@ var tokenKeySubstrings = []string{
 
 // stripTokens removes any attribute whose key looks like a credential. It is a
 // defensive backstop; emitters should not place tokens in attributes at all.
+// It never mutates the input map: when something must be stripped it returns a
+// filtered copy (copy-on-write), so caller-owned maps stay intact.
 func stripTokens(attrs map[string]any) map[string]any {
 	if len(attrs) == 0 {
 		return attrs
 	}
 
+	var out map[string]any // allocated only if something is stripped
+
 	for k := range attrs {
 		lk := strings.ToLower(k)
 		for _, s := range tokenKeySubstrings {
 			if strings.Contains(lk, s) {
-				delete(attrs, k)
+				if out == nil {
+					out = make(map[string]any, len(attrs))
+					for ck, cv := range attrs {
+						out[ck] = cv
+					}
+				}
+
+				delete(out, k)
 
 				break
 			}
 		}
 	}
 
-	return attrs
+	if out == nil {
+		return attrs
+	}
+
+	return out
 }
 
 func outcome(err error) string {

@@ -40,6 +40,12 @@ const (
 // correlation id is stored on *azugo.Context.
 const ctxKeyCorrelationID = "platform.correlation_id"
 
+// MaxIDLength bounds an accepted inbound correlation id. Longer (or otherwise
+// invalid) inbound values are ignored and a fresh id is used instead — the
+// correlation id rides every log line, audit envelope, and outbound call, so
+// it must never be an attacker-controlled free-text channel.
+const MaxIDLength = 128
+
 // IDs is the correlation triple carried on a request: the project correlation_id
 // plus the OpenTelemetry trace_id/span_id (empty when tracing is inactive).
 type IDs struct {
@@ -57,12 +63,18 @@ type IDs struct {
 func Middleware() azugo.RequestHandlerFunc {
 	return func(next azugo.RequestHandler) azugo.RequestHandler {
 		return func(ctx *azugo.Context) {
-			// 1. Read an inbound correlation id. With none, adopt Azugo's own
-			//    per-request id (ctx.ID(), a ULID) rather than mint a parallel
-			//    one — so the access log's http.request.id and the correlation_id
-			//    on every other line share a single value. newID() is only a
-			//    defensive fallback should no request id be set.
+			// 1. Read an inbound correlation id — accepted only when it passes
+			//    validation (bounded length, safe charset), since it is stamped
+			//    on every log line and audit envelope and echoed downstream. With
+			//    none (or an invalid one), adopt Azugo's own per-request id
+			//    (ctx.ID(), a ULID) rather than mint a parallel one — so the
+			//    access log's http.request.id and the correlation_id on every
+			//    other line share a single value. newID() is only a defensive
+			//    fallback should no request id be set.
 			cid := strings.TrimSpace(ctx.Header.Get(HeaderCorrelationID))
+			if !ValidID(cid) {
+				cid = ""
+			}
 			if cid == "" {
 				cid = ctx.ID()
 			}
@@ -130,4 +142,29 @@ func traceIDs(ctx *azugo.Context) (traceID, spanID string, ok bool) {
 // newID mints a new ULID for use as a correlation id.
 func newID() string {
 	return ulid.Make().String()
+}
+
+// ValidID reports whether s is acceptable as an inbound correlation id: 1 to
+// MaxIDLength characters from [A-Za-z0-9._-]. Anything else (empty, oversized,
+// exotic characters, header-injection attempts) is rejected and replaced by a
+// locally minted id.
+func ValidID(s string) bool {
+	if s == "" || len(s) > MaxIDLength {
+		return false
+	}
+
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+
+		switch {
+		case c >= 'a' && c <= 'z':
+		case c >= 'A' && c <= 'Z':
+		case c >= '0' && c <= '9':
+		case c == '.' || c == '_' || c == '-':
+		default:
+			return false
+		}
+	}
+
+	return true
 }

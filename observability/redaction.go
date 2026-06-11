@@ -27,6 +27,12 @@ const maskValue = "[REDACTED]"
 //
 // Redaction is applied centrally so a handler using ctx.Log() cannot
 // accidentally log a token or document content (Security Checklist A10).
+//
+// Limitation: matching is by TOP-LEVEL field key only. A nested value logged
+// via zap.Any / zap.Reflect (e.g. a whole attributes map) is NOT inspected —
+// sensitive keys inside it bypass redaction. Do not log raw maps/structs that
+// may carry secrets or PII; log individual fields, or sanitize the map first
+// (the audit emitter libraries do this for their own attribute maps).
 type RedactionPolicy struct {
 	DropKeys []string
 	MaskKeys []string
