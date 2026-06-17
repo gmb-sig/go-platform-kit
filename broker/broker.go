@@ -24,6 +24,13 @@ func now() time.Time { return time.Now().UTC() }
 // is responsible for the connection, TLS, and per-topic ACLs configured from the
 // broker config section. Keeping it abstract keeps go-platform-kit in-process
 // glue, not a broker client.
+//
+// Implementation note: the ctx passed to Publish may be a pooled
+// fasthttp/azugo request context. Do NOT derive cancel/timeout contexts from
+// it directly (context.WithTimeout(ctx, …)) — the stdlib spawns a watcher
+// goroutine on the parent that can outlive the request and race with the
+// context being reset for reuse. Detach first:
+// context.WithTimeout(context.WithoutCancel(ctx), …).
 type Transport interface {
 	// Publish sends payload to topic. key is the partition/ordering key (the
 	// event id), letting the transport preserve per-key ordering.
