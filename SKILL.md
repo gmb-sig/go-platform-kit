@@ -265,7 +265,35 @@ err := broker.Dispatch(ctx, payload, store, func(ctx context.Context, ev *broker
 ```
 
 `Transport` is an interface (`Publish(ctx, topic, key, payload)`) — inject your broker
-client; `go-platform-kit` stays transport-agnostic glue.
+client; the core `broker` package stays transport-agnostic glue.
+
+### NATS JetStream (`broker/natsbroker`)
+
+The concrete NATS JetStream implementation lives in the **opt-in** subpackage
+`broker/natsbroker` — the one place that imports `nats.go`. Import it only in services
+that talk to NATS (producers + sinks); services that don't never pull the dependency, so
+the core `broker` package stays client-free.
+
+```go
+import "github.com/gmb-sig/go-platform-kit/broker/natsbroker"
+
+// Producer: publish over JetStream (Msg-Id = event id → server-side dedup backstop).
+conn, _ := natsbroker.Connect(natsbroker.Config{URL: cfg.Broker.URL, Name: cfg.ServiceName})
+pub := broker.NewPublisher(natsbroker.NewTransport(conn), cfg.ServiceName)
+
+// Sink: ensure the stream, then run a durable pull consumer driving broker.Dispatch.
+_ = conn.EnsureStream(ctx, natsbroker.StreamConfig{
+    Name: "AUDIT", Subjects: []string{"audit.>"}, Duplicates: 2 * time.Minute,
+})
+cons, _ := natsbroker.NewConsumer(ctx, conn, natsbroker.ConsumerConfig{
+    Stream: "AUDIT", Durable: "eidas-audit", FilterSubject: "audit.signing",
+}, store, handler, log)
+_ = cons.Start(ctx) // success acks; any error naks → JetStream redelivers. Stop() to halt.
+```
+
+Connection material comes from the platform `Broker` config (`BROKER_URL` / `BROKER_TLS_*`).
+`Consumer` is framework-agnostic (`Start`/`Stop`), so the same code runs standalone or
+bundled inside another service's `core.Tasker`.
 
 ---
 
