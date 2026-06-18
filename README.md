@@ -59,6 +59,7 @@ tracing, and the correlation middleware installed.
 | `correlation` | `correlation_id`/`trace_id` middleware + context helpers |
 | `errors` | error taxonomy + `err:domain:reason` → Azugo HTTP error mapping |
 | `broker` | `Publisher`/`Dispatch` + `IdempotencyStore` over the frozen event envelope (at-least-once handling, mark-after-success dedup) |
+| `broker/natsbroker` | NATS JetStream concrete impl — publish `Transport` + durable pull `Consumer` + `Connect`/`EnsureStream`; **opt-in**, the only package importing `nats.go` |
 | `httpclient` | outbound defaults + correlation header propagation |
 
 ## Develop
