@@ -20,10 +20,10 @@ const maskValue = "[REDACTED]"
 // RedactionPolicy decides, by log-field key, what must never reach the log sink.
 // Matching is case-insensitive substring matching against the field key.
 //
-//   - DropKeys: the whole field is omitted (credentials, secrets, document
-//     bytes — things that must not be stored at all).
-//   - MaskKeys: the field is kept but its value is replaced with "[REDACTED]"
-//     (free-text PII — useful to know a field was present without storing it).
+// - DropKeys: the whole field is omitted (credentials, secrets, document
+// bytes — things that must not be stored at all).
+// - MaskKeys: the field is kept but its value is replaced with "[REDACTED]"
+// (free-text PII — useful to know a field was present without storing it).
 //
 // Redaction is applied centrally so a handler using ctx.Log() cannot
 // accidentally log a token or document content (Security Checklist A10).

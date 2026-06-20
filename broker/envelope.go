@@ -18,9 +18,9 @@ import "time"
 type Category string
 
 const (
-	CategorySigning    Category = "signing"     // Regime A — signing evidence
-	CategoryGDPRAccess Category = "gdpr_access" // Regime B — personal-data access
-	CategorySecurity   Category = "security"    // Regime C — security telemetry
+	CategorySigning    Category = "signing"     // eIDAS-audit — signing evidence
+	CategoryGDPRAccess Category = "gdpr_access" // GDPR-audit — personal-data access
+	CategorySecurity   Category = "security"    // NIS2-audit — security telemetry
 )
 
 // Operation is the action an event records.
@@ -86,7 +86,7 @@ type Envelope struct {
 	Resource     *Resource `json:"resource,omitempty"`
 	Operation    Operation `json:"operation,omitempty"`
 
-	// GDPR access context (Regime B).
+	// GDPR access context (GDPR-audit).
 	LawfulBasis string `json:"lawful_basis,omitempty"`
 	Purpose     string `json:"purpose,omitempty"`
 

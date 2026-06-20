@@ -64,13 +64,13 @@ func Middleware() azugo.RequestHandlerFunc {
 	return func(next azugo.RequestHandler) azugo.RequestHandler {
 		return func(ctx *azugo.Context) {
 			// 1. Read an inbound correlation id — accepted only when it passes
-			//    validation (bounded length, safe charset), since it is stamped
-			//    on every log line and audit envelope and echoed downstream. With
-			//    none (or an invalid one), adopt Azugo's own per-request id
-			//    (ctx.ID(), a ULID) rather than mint a parallel one — so the
-			//    access log's http.request.id and the correlation_id on every
-			//    other line share a single value. newID() is only a defensive
-			//    fallback should no request id be set.
+			// validation (bounded length, safe charset), since it is stamped
+			// on every log line and audit envelope and echoed downstream. With
+			// none (or an invalid one), adopt Azugo's own per-request id
+			// (ctx.ID(), a ULID) rather than mint a parallel one — so the
+			// access log's http.request.id and the correlation_id on every
+			// other line share a single value. newID() is only a defensive
+			// fallback should no request id be set.
 			cid := strings.TrimSpace(ctx.Header.Get(HeaderCorrelationID))
 			if !ValidID(cid) {
 				cid = ""

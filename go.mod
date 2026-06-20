@@ -3,10 +3,10 @@ module github.com/gmb-sig/go-platform-kit
 go 1.26
 
 require (
-	azugo.io/azugo v0.33.1
-	azugo.io/core v0.33.1
+	azugo.io/azugo v0.34.0
+	azugo.io/core v0.34.0
 	azugo.io/opentelemetry v0.33.1
-	github.com/VictoriaMetrics/metrics v1.43.2
+	github.com/VictoriaMetrics/metrics v1.44.0
 	github.com/go-quicktest/qt v1.102.0
 	github.com/nats-io/nats.go v1.52.0
 	github.com/oklog/ulid/v2 v2.1.1
