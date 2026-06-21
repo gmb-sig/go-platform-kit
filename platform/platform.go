@@ -1,7 +1,7 @@
 // Package platform is the single bootstrap entrypoint. One call to Setup wires
 // Azugo's telemetry + the project glue identically across every service:
 // logging with PII/secret redaction, metric conventions, OpenTelemetry tracing,
-// the correlation middleware, and the error taxonomy (go-platform-kit Spec §5.6).
+// the correlation middleware, and the error taxonomy.
 //
 // A service calls it from its App.init(), right after server.New(...):
 //
@@ -66,10 +66,10 @@ func Setup(app *azugo.App, opts Options) error {
 		return err
 	}
 
-	// 2. Log redaction — compliance guardrail (Security Checklist A10).
+	// 2. Log redaction — compliance guardrail.
 	observability.EnableRedaction(app, opts.Redaction)
 
-	// 3. Correlation middleware — the project-only piece (Spec §5.2.4). Runs
+	// 3. Correlation middleware — the project-only piece. Runs
 	// after the tracing middleware (registered in step 1) so trace_id/span_id
 	// are available to bind alongside correlation_id.
 	app.Use(correlation.Middleware())

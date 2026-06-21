@@ -2,8 +2,7 @@
 // telemetry — logging (with PII/secret redaction), metrics naming, and
 // OpenTelemetry tracing. It re-implements none of it: it configures and wraps
 // Azugo's zap logger, the VictoriaMetrics/metrics registry, and
-// azugo.io/opentelemetry so the whole fleet emits the same shapes
-// (go-platform-kit Spec §3, §5.2).
+// azugo.io/opentelemetry so the whole fleet emits the same shapes.
 package observability
 
 import (
@@ -26,7 +25,7 @@ const maskValue = "[REDACTED]"
 // (free-text PII — useful to know a field was present without storing it).
 //
 // Redaction is applied centrally so a handler using ctx.Log() cannot
-// accidentally log a token or document content (Security Checklist A10).
+// accidentally log a token or document content.
 //
 // Limitation: matching is by TOP-LEVEL field key only. A nested value logged
 // via zap.Any / zap.Reflect (e.g. a whole attributes map) is NOT inspected —

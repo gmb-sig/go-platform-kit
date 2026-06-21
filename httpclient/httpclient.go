@@ -1,6 +1,5 @@
 // Package httpclient adds project conventions over Azugo's ctx.HTTPClient():
-// correlation propagation on outbound calls and sane transport defaults
-// (go-platform-kit Spec §5.5).
+// correlation propagation on outbound calls and sane transport defaults.
 //
 // It owns transport defaults and correlation; go-authbyte owns auth — it
 // attaches the DPoP-bound service token + proof. The two compose: build the

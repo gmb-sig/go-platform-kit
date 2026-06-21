@@ -16,7 +16,7 @@ import (
 )
 
 // now returns the current time in UTC. occurred_at is a high-precision,
-// synced-clock timestamp (Audit Design §8.1).
+// synced-clock timestamp.
 func now() time.Time { return time.Now().UTC() }
 
 // Transport is the minimal broker abstraction go-platform-kit publishes over. A
@@ -37,7 +37,7 @@ type Transport interface {
 	Publish(ctx context.Context, topic, key string, payload []byte) error
 }
 
-// Publisher serializes and publishes events as the §8.1 envelope, stamping
+// Publisher serializes and publishes events as the event envelope, stamping
 // correlation/trace ids from the request.
 type Publisher struct {
 	transport Transport
@@ -120,9 +120,9 @@ func Stamp(ctx *azugo.Context, ev *Envelope) {
 	ev.Attributes = stripTokens(ev.Attributes)
 }
 
-// Validate checks the envelope carries the minimum a sink needs (Audit Design
-// §8.1): an event type, at least one category, and an outcome. Identity fields
-// are filled by Stamp before validation.
+// Validate checks the envelope carries the minimum a sink needs: an event
+// type, at least one category, and an outcome. Identity fields are filled by
+// Stamp before validation.
 func (ev *Envelope) Validate() error {
 	if ev.EventID == "" {
 		return errors.New("broker: envelope missing event_id")

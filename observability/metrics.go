@@ -9,7 +9,7 @@ import (
 )
 
 // Standard metric label keys, injected so dashboards are uniform across the
-// fleet (go-platform-kit Spec §5.2.2). Azugo already emits the inbound-request
+// fleet. Azugo already emits the inbound-request
 // RED metrics (requests_total / request_duration_seconds with code/method/path
 // labels); these helpers cover the deltas go-platform-kit owns — broker
 // publish/consume and outbound HTTP-client calls.

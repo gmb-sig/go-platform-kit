@@ -1,5 +1,5 @@
 // Package correlation owns the project correlation model — the single concern
-// no upstream library can own (go-platform-kit Spec §5.2.4).
+// no upstream library can own.
 //
 // On every inbound request the Middleware reads (or issues) a correlation_id,
 // adopts the OpenTelemetry trace_id/span_id from azugo.io/opentelemetry, binds
@@ -28,8 +28,7 @@ const (
 )
 
 // Log field keys. These are the canonical names that appear in every log line
-// (the fixed field set of go-platform-kit Spec §5.2.1) and in the §8.1 audit
-// event envelope.
+// and in the audit event envelope.
 const (
 	LogKeyCorrelationID = "correlation_id"
 	LogKeyTraceID       = "trace_id"

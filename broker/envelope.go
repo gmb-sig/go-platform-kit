@@ -1,20 +1,18 @@
 // Package broker provides thin publish/consume wrappers that carry the frozen
-// §8.1 event envelope, stamp correlation/trace ids, and enforce the
-// project conventions (TLS + per-topic ACLs, idempotent consume). The
-// audit/security emitter libraries (go-eidas-audit, go-gdpr-audit, go-sec-events)
-// build on these helpers; go-platform-kit itself emits nothing
-// (go-platform-kit Spec §5.4).
+// event envelope, stamp correlation/trace ids, and enforce the project
+// conventions (TLS + per-topic ACLs, idempotent consume). The audit/security
+// emitter libraries (go-eidas-audit, go-gdpr-audit, go-sec-events) build on
+// these helpers; go-platform-kit itself emits nothing.
 //
-// Events carry actor/identity metadata + correlation only — never bearer tokens
-// (Services Catalog §6.5). The transport itself is abstracted behind the
-// Transport interface so go-platform-kit stays in-process glue and is not
-// coupled to a specific broker client.
+// Events carry actor/identity metadata + correlation only — never bearer
+// tokens. The transport itself is abstracted behind the Transport interface so
+// go-platform-kit stays in-process glue and is not coupled to a specific broker
+// client.
 package broker
 
 import "time"
 
-// Category classifies an event by audit regime; an event may belong to more
-// than one (Audit Design §8.1).
+// Category classifies an event by audit regime; an event may belong to more than one.
 type Category string
 
 const (
@@ -60,9 +58,9 @@ type Resource struct {
 	ID   string `json:"id,omitempty"`
 }
 
-// Envelope is the common JSON shape every event conforms to, frozen in Wave 0
-// (Audit Design §8.1). go-platform-kit owns the envelope and the correlation it
-// carries; the emitter libraries own its content.
+// Envelope is the common JSON shape every event conforms to; its schema is
+// frozen (append-only) from v1.0.0. go-platform-kit owns the envelope and the
+// correlation it carries; the emitter libraries own its content.
 type Envelope struct {
 	// Identity & correlation.
 	EventID       string    `json:"event_id"`
@@ -100,7 +98,6 @@ type Envelope struct {
 	Hash     string `json:"hash,omitempty"`
 
 	// Attributes are typed and must contain no free-text PII and no document
-	// content (Audit Design §8.1). Bearer-token-shaped keys are stripped
-	// defensively on publish.
+	// content. Bearer-token-shaped keys are stripped defensively on publish.
 	Attributes map[string]any `json:"attributes,omitempty"`
 }

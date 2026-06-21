@@ -1,6 +1,6 @@
 ---
 name: go-platform-kit
-description: Conventions for using github.com/gmb-sig/go-platform-kit — the thin, project-specific glue over Azugo that every backend service imports so config, telemetry, errors, correlation, and broker access are wired identically. Use when bootstrapping a service (platform.Setup), defining the base configuration, adding the correlation model, mapping DB result codes to HTTP errors, propagating correlation on outbound HTTP, or publishing/consuming broker events with the §8.1 envelope. Complements the azugo-framework skill (it does not replace it).
+description: Conventions for using github.com/gmb-sig/go-platform-kit — the thin, project-specific glue over Azugo that every backend service imports so config, telemetry, errors, correlation, and broker access are wired identically. Use when bootstrapping a service (platform.Setup), defining the base configuration, adding the correlation model, mapping DB result codes to HTTP errors, propagating correlation on outbound HTTP, or publishing/consuming broker events with the event envelope. Complements the azugo-framework skill (it does not replace it).
 ---
 
 # go-platform-kit — Project Glue Over Azugo
@@ -25,10 +25,10 @@ Module: `github.com/gmb-sig/go-platform-kit` · Pinned to `azugo.io/azugo` + `az
 |---|---|
 | `…/platform` | `Setup(app, Options)` — the single bootstrap entrypoint |
 | `…/config` | `BaseConfiguration` (embeds Azugo config) + the standard env |
-| `…/observability` | logger redaction, metric naming helpers, `EnableTracing` |
+| `…/observability` | logger redaction, metric naming helpers, `EnableTracing`, outbound HTTP-client tracing |
 | `…/correlation` | `correlation_id`/`trace_id` middleware + context helpers |
 | `…/errors` | error taxonomy + `err:domain:reason` → Azugo HTTP error mapping |
-| `…/broker` | `Publisher`/`Consumer` over the frozen §8.1 event envelope |
+| `…/broker` | `Publisher`/`Consumer` over the frozen event envelope |
 | `…/httpclient` | outbound defaults + correlation header propagation |
 
 ---
@@ -207,9 +207,9 @@ Auth-specific mappings stay in `go-authbyte`.
 
 ## 5. Outbound HTTP — correlation propagation
 
-Use `ctx.HTTPClient()` (never a raw client). `go-platform-kit` adds the `correlation_id`
-header; W3C `traceparent` is injected automatically by `azugo.io/opentelemetry`;
-`go-authbyte` adds the DPoP-bound token.
+For service-to-service calls use `ctx.HTTPClient()`, not a hand-rolled client.
+`go-platform-kit` adds the `correlation_id` header; W3C `traceparent` is injected
+automatically by `azugo.io/opentelemetry`; `go-authbyte` adds the DPoP-bound token.
 
 ```go
 import "github.com/gmb-sig/go-platform-kit/httpclient"
@@ -224,12 +224,36 @@ func (c *DocumentClient) Fetch(ctx *azugo.Context, id string) (*Doc, error) {
 }
 ```
 
+### Bespoke clients that bypass `ctx.HTTPClient()`
+
+When a call cannot go through `ctx.HTTPClient()` — a third-party SDK that owns its
+`http.Client`, or an external API client built at startup — instrument that client so
+its calls still open OpenTelemetry **client spans** and inject the W3C trace context.
+Service-to-service hops then continue the same trace; external hops show up in the
+service graph.
+
+```go
+import "github.com/gmb-sig/go-platform-kit/observability"
+
+// Instrument a service's own client in place (allocates one when nil):
+client := observability.InstrumentHTTPClient(&http.Client{Timeout: 10 * time.Second})
+
+// Or wrap only the transport — e.g. for an SDK that takes a RoundTripper
+// (nil base ⇒ http.DefaultTransport):
+rt := observability.InstrumentedTransport(nil)
+```
+
+Safe to apply unconditionally: with no exporter or active span it is a no-op. It
+carries the **trace context only** — the `correlation_id` header rides on
+`ctx.HTTPClient()` calls (via `CorrelationOptions`), so a bespoke client that must
+propagate it has to set that header itself.
+
 ---
 
-## 6. Broker — the §8.1 event envelope
+## 6. Broker — the event envelope
 
 Audit/security emitters (`go-eidas-audit`, `go-gdpr-audit`, `go-sec-events`) build on
-these helpers; a service rarely publishes directly. The `Envelope` is the **frozen §8.1
+these helpers; a service rarely publishes directly. The `Envelope` is the **frozen
 schema**; `Publisher.Publish` stamps `event_id` (ULID), `occurred_at`, and
 correlation/trace ids, validates, and strips any bearer-token-shaped attributes —
 **events carry correlation, never tokens**.
@@ -301,7 +325,7 @@ bundled inside another service's `core.Tasker`.
 
 After `Setup`, redaction is **always on**. Use `ctx.Log()` as normal; the redacting core
 **drops** credential/secret/document-content fields and **masks** free-text PII before
-they reach the sink — a handler cannot accidentally log a token (Security Checklist A10).
+they reach the sink — a handler cannot accidentally log a token.
 
 ```go
 ctx.Log().Info("issued token",
@@ -334,5 +358,5 @@ If it is not a genuine every-service concern, it does not belong in `go-platform
 | Correlation | `correlation.ID/FromContext` | middleware auto-installed by Setup |
 | Errors | `errors.FromResultCode` / `errors.HTTP` | `ctx.Error(...)` maps to status + safe msg |
 | Outbound | `httpclient.Outbound` + `CorrelationOptions` | over `ctx.HTTPClient()` |
-| Broker | `broker.NewPublisher` / `broker.Dispatch` | §8.1 `Envelope`, idempotent consume |
+| Broker | `broker.NewPublisher` / `broker.Dispatch` | `Envelope`, idempotent consume |
 | Redaction | automatic | `ctx.Log()`; policy via `Options.Redaction` |
