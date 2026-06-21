@@ -1,12 +1,11 @@
 // Package errors is the project error taxonomy. It maps the DB layer's
 // namespaced result codes (`err:domain:reason`, e.g. from
-// result_error('err:document:notFound', …) — Services Catalog §7.3) to Azugo
-// HTTP error types and to safe client messages, so every service returns
-// consistent HTTP status codes and never leaks internals (go-platform-kit Spec
-// §5.3).
+// result_error('err:document:notFound', …)) to Azugo HTTP error types and to
+// safe client messages, so every service returns consistent HTTP status codes
+// and never leaks internals.
 //
-// Auth-specific mappings stay in go-authbyte (Auth Spec §11); this package
-// covers the general domain/data errors. Where Azugo lacks a matching error
+// Auth-specific mappings stay in go-authbyte; this package covers the general
+// domain/data errors. Where Azugo lacks a matching error
 // type (e.g. 409 Conflict), this package supplies one that implements Azugo's
 // ResponseStatusCode and SafeError interfaces so ctx.Error(err) maps it
 // automatically.

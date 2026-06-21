@@ -1,11 +1,11 @@
-azugo.io/azugo v0.33.1 h1:OeraNM5GwShijW0SirExCzJEX0q/Kh9Vpw/X+kzb5CY=
-azugo.io/azugo v0.33.1/go.mod h1:xXWBXWeLQHCSz0T0caWXRUL6l/iMT84XvTw0SnVIBt8=
-azugo.io/core v0.33.1 h1:TytwdC70d9qSBxjNvyWImHpUKlR+97QHr2P9jVttGoY=
-azugo.io/core v0.33.1/go.mod h1:YTzc0IP2+2fKpwmtDNDpz1dIn9J+swax6bAy7bj6Lmk=
+azugo.io/azugo v0.34.0 h1:QZe80E1uEKHlIhTRjR4nuIEAIGszDQxJfgSBxIbxIRo=
+azugo.io/azugo v0.34.0/go.mod h1:zi8y/Ve6IR66Vv2GsjN1xg+nNKrfVjdCpZXw1XRE3HU=
+azugo.io/core v0.34.0 h1:iVYyIjfQGAfHQWSHNJrJG85H2gkOXmXOyySxulDuJsM=
+azugo.io/core v0.34.0/go.mod h1:YTzc0IP2+2fKpwmtDNDpz1dIn9J+swax6bAy7bj6Lmk=
 azugo.io/opentelemetry v0.33.1 h1:JBeDPKcZr3AW6aC1kmMldUON+8NK5F89/P/BhbI6Iu8=
 azugo.io/opentelemetry v0.33.1/go.mod h1:fO86cSd6fUy5weQwwj6lb0NAoz8J8kNOBVBUGBAJec8=
-github.com/VictoriaMetrics/metrics v1.43.2 h1:+8pIQEGwchKS5CYFyvv3LKvNXGi7baZ9hmIV4RHqibY=
-github.com/VictoriaMetrics/metrics v1.43.2/go.mod h1:xDM82ULLYCYdFRgQ2JBxi8Uf1+8En1So9YUwlGTOqTc=
+github.com/VictoriaMetrics/metrics v1.44.0 h1:Fr8yqQSV+ZfYaDD/anqk1E8e9YPgfleSleJmAI0M0Tw=
+github.com/VictoriaMetrics/metrics v1.44.0/go.mod h1:xDM82ULLYCYdFRgQ2JBxi8Uf1+8En1So9YUwlGTOqTc=
 github.com/andybalholm/brotli v1.2.1 h1:R+f5xP285VArJDRgowrfb9DqL18yVK0gKAW/F+eTWro=
 github.com/andybalholm/brotli v1.2.1/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=

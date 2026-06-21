@@ -1,26 +1,24 @@
 // Package broker provides thin publish/consume wrappers that carry the frozen
-// §8.1 event envelope, stamp correlation/trace ids, and enforce the
-// project conventions (TLS + per-topic ACLs, idempotent consume). The
-// audit/security emitter libraries (go-eidas-audit, go-gdpr-audit, go-sec-events)
-// build on these helpers; go-platform-kit itself emits nothing
-// (go-platform-kit Spec §5.4).
+// event envelope, stamp correlation/trace ids, and enforce the project
+// conventions (TLS + per-topic ACLs, idempotent consume). The audit/security
+// emitter libraries (go-eidas-audit, go-gdpr-audit, go-sec-events) build on
+// these helpers; go-platform-kit itself emits nothing.
 //
-// Events carry actor/identity metadata + correlation only — never bearer tokens
-// (Services Catalog §6.5). The transport itself is abstracted behind the
-// Transport interface so go-platform-kit stays in-process glue and is not
-// coupled to a specific broker client.
+// Events carry actor/identity metadata + correlation only — never bearer
+// tokens. The transport itself is abstracted behind the Transport interface so
+// go-platform-kit stays in-process glue and is not coupled to a specific broker
+// client.
 package broker
 
 import "time"
 
-// Category classifies an event by audit regime; an event may belong to more
-// than one (Audit Design §8.1).
+// Category classifies an event by audit regime; an event may belong to more than one.
 type Category string
 
 const (
-	CategorySigning    Category = "signing"     // Regime A — signing evidence
-	CategoryGDPRAccess Category = "gdpr_access" // Regime B — personal-data access
-	CategorySecurity   Category = "security"    // Regime C — security telemetry
+	CategorySigning    Category = "signing"     // eIDAS-audit — signing evidence
+	CategoryGDPRAccess Category = "gdpr_access" // GDPR-audit — personal-data access
+	CategorySecurity   Category = "security"    // NIS2-audit — security telemetry
 )
 
 // Operation is the action an event records.
@@ -60,9 +58,12 @@ type Resource struct {
 	ID   string `json:"id,omitempty"`
 }
 
-// Envelope is the common JSON shape every event conforms to, frozen in Wave 0
-// (Audit Design §8.1). go-platform-kit owns the envelope and the correlation it
-// carries; the emitter libraries own its content.
+// Envelope is the common JSON shape every event conforms to. By project rule it
+// evolves append-only — new optional fields only; existing fields and JSON keys
+// are never renamed or removed, so producers and consumers stay wire-compatible
+// without a version gate (a schema test enforces the field set). go-platform-kit
+// owns the envelope and the correlation it carries; the emitter libraries own its
+// content.
 type Envelope struct {
 	// Identity & correlation.
 	EventID       string    `json:"event_id"`
@@ -86,7 +87,7 @@ type Envelope struct {
 	Resource     *Resource `json:"resource,omitempty"`
 	Operation    Operation `json:"operation,omitempty"`
 
-	// GDPR access context (Regime B).
+	// GDPR access context (GDPR-audit).
 	LawfulBasis string `json:"lawful_basis,omitempty"`
 	Purpose     string `json:"purpose,omitempty"`
 
@@ -100,7 +101,6 @@ type Envelope struct {
 	Hash     string `json:"hash,omitempty"`
 
 	// Attributes are typed and must contain no free-text PII and no document
-	// content (Audit Design §8.1). Bearer-token-shaped keys are stripped
-	// defensively on publish.
+	// content. Bearer-token-shaped keys are stripped defensively on publish.
 	Attributes map[string]any `json:"attributes,omitempty"`
 }

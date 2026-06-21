@@ -20,7 +20,7 @@ import (
 type Handler func(ctx context.Context, ev *Envelope) error
 
 // IdempotencyStore tracks which event ids have completed processing, so a
-// redelivered message is not handled twice (Audit Design: at-least-once
+// redelivered message is not handled twice (at-least-once delivery is
 // assumed). Seen is a read-only check; MarkProcessed records the id only after
 // the handler has succeeded — never before, so a handler failure can never
 // cause an event to be acknowledged unprocessed. Implementations must be safe

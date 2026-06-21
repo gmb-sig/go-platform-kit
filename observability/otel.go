@@ -8,8 +8,7 @@ import (
 // EnableTracing performs the documented azugo.io/opentelemetry wiring once, with
 // standard resource attributes. It enables — never re-implements — tracing: it
 // calls opentelemetry.Use (which traces router handlers, ctx.HTTPClient, and the
-// cache) and registers the returned task with the app (go-platform-kit Spec
-// §5.2.3).
+// cache) and registers the returned task with the app.
 //
 // The service name defaults to the app's AppName when not set via OTEL_SERVICE_NAME.
 // If no OTLP endpoint is configured the package returns a no-op task, so the

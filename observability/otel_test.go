@@ -13,7 +13,7 @@ func TestEnableTracing_InertWithoutEndpoint(t *testing.T) {
 	app.AppName = "document-svc"
 
 	// No OTLP endpoint configured: tracing is disabled, the call succeeds, and
-	// the service can start cleanly (Spec §10 — tracing inert with no endpoint).
+	// the service can start cleanly (tracing inert with no endpoint).
 	qt.Assert(t, qt.IsNil(EnableTracing(app, nil)))
 }
 

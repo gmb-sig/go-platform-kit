@@ -1,18 +1,16 @@
 // Package natsbroker is the NATS JetStream implementation of the go-platform-kit
 // broker abstraction. It provides a publish broker.Transport and a durable
 // pull Consumer that drives broker.Dispatch, so services publish and consume the
-// frozen §8.1 event envelope over JetStream without re-implementing broker
-// plumbing.
+// frozen event envelope over JetStream without re-implementing broker plumbing.
 //
 // This is the one package in go-platform-kit that imports a concrete broker
-// client (nats.go), keeping the core broker package transport-agnostic in-process
-// glue (broker/envelope.go). Import natsbroker ONLY in services that actually
-// talk to NATS (producers via Transport, sinks via Consumer); services that don't
-// never pull the nats.go dependency into their binary.
+// client (nats.go), keeping the core broker package transport-agnostic
+// in-process glue. Import natsbroker ONLY in services that actually talk to
+// NATS (producers via Transport, sinks via Consumer); services that don't never
+// pull the nats.go dependency into their binary.
 //
 // Connection material comes from the platform config Broker section
-// (BROKER_URL / BROKER_TLS_* — go-platform-kit Spec §6); callers map those fields
-// into Config.
+// (BROKER_URL / BROKER_TLS_*); callers map those fields into Config.
 package natsbroker
 
 import (

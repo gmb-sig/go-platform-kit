@@ -7,15 +7,15 @@
 //
 // A service defines its own Configuration that embeds *BaseConfiguration and
 // adds its own sub-config (DB DSN, audiences, …); go-platform-kit only owns the
-// shared base (go-platform-kit Spec §5.1).
+// shared base.
 //
 //	type Configuration struct {
-//	    *config.BaseConfiguration `mapstructure:",squash"`
-//	    PostgresDSN string `mapstructure:"postgres_dsn" validate:"required"`
+//	 *config.BaseConfiguration `mapstructure:",squash"`
+//	 PostgresDSN string `mapstructure:"postgres_dsn" validate:"required"`
 //	}
 //
 //	func NewConfiguration() *Configuration {
-//	    return &Configuration{BaseConfiguration: config.New()}
+//	 return &Configuration{BaseConfiguration: config.New()}
 //	}
 package config
 
@@ -68,8 +68,8 @@ func New() *BaseConfiguration {
 // service that embeds *BaseConfiguration MUST call this from its own Bind:
 //
 //	func (c *Configuration) Bind(_ string, v *viper.Viper) {
-//	    c.BaseConfiguration.Bind("", v)
-//	    // service-specific bindings…
+//	 c.BaseConfiguration.Bind("", v)
+//	 // service-specific bindings…
 //	}
 func (c *BaseConfiguration) Bind(_ string, v *viper.Viper) {
 	// Always bind the Azugo base (server, cors, metrics, healthz, http_client…).
@@ -86,7 +86,7 @@ func (c *BaseConfiguration) Bind(_ string, v *viper.Viper) {
 // Validate validates the full base configuration. The validator recurses into
 // the embedded Azugo configuration and the Telemetry/Broker sub-sections, so a
 // single Struct call covers every standard field and fails fast at startup on a
-// missing/invalid value (go-platform-kit Spec §10).
+// missing/invalid value.
 func (c *BaseConfiguration) Validate(valid *validation.Validate) error {
 	return valid.Struct(c)
 }

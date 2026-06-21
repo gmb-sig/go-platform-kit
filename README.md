@@ -9,19 +9,18 @@ and adds the project glue Azugo cannot know about (the correlation model linking
 to the three audit regimes, PII/secret log redaction, and the frozen broker event
 envelope). It re-implements none of Azugo's logger, metrics, or tracer.
 
-See [`SKILL.md`](./SKILL.md) for usage conventions. Design references (§-numbers in doc
-comments) point to the project's internal *Platform Kit Specification* and *Audit & Logging
-Design* documents.
+See [`SKILL.md`](./SKILL.md) for usage conventions.
 
 **Scope (a v1 commitment):** this kit targets [Azugo](https://azugo.io) services. Its
 entrypoints take `*azugo.App` / `*azugo.Context` by design, and it is version-pinned in
 lockstep with `azugo.io/*`. It is not a general-purpose Go toolkit; non-Azugo stacks should
 implement the (small, documented) envelope contract directly.
 
-**Event envelope stability:** from v1.0.0 the `broker.Envelope` JSON schema is
-**append-only** — new optional fields may be added; existing fields and attribute keys are
-never renamed or removed. `Envelope.DataSubjects` values must be **pseudonymous internal
-identity references**, never national identifiers, names, or e-mail addresses.
+**Event envelope stability:** the `broker.Envelope` JSON schema is **append-only** —
+new optional fields may be added; existing fields and attribute keys are never renamed
+or removed. A schema test pins the struct's field set, so a rename or removal fails CI.
+`Envelope.DataSubjects` values must be **pseudonymous internal identity references**,
+never national identifiers, names, or e-mail addresses.
 
 ## Install
 
@@ -29,8 +28,7 @@ identity references**, never national identifiers, names, or e-mail addresses.
 go get github.com/gmb-sig/go-platform-kit
 ```
 
-Pinned in lockstep to `azugo.io/azugo`, `azugo.io/core`, and `azugo.io/opentelemetry`
-(v0.32.x).
+Pinned in lockstep to `azugo.io/azugo`, `azugo.io/core`, and `azugo.io/opentelemetry`.
 
 ## One-call bootstrap
 
@@ -55,7 +53,7 @@ tracing, and the correlation middleware installed.
 |---|---|
 | `platform` | `Setup(app, Options)` — the single bootstrap entrypoint |
 | `config` | `BaseConfiguration` + the standard fleet env |
-| `observability` | log redaction, metric naming, OpenTelemetry enablement |
+| `observability` | log redaction, metric naming, OpenTelemetry enablement (incl. bespoke HTTP-client tracing) |
 | `correlation` | `correlation_id`/`trace_id` middleware + context helpers |
 | `errors` | error taxonomy + `err:domain:reason` → Azugo HTTP error mapping |
 | `broker` | `Publisher`/`Dispatch` + `IdempotencyStore` over the frozen event envelope (at-least-once handling, mark-after-success dedup) |
