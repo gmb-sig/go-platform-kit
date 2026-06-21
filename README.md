@@ -16,10 +16,11 @@ entrypoints take `*azugo.App` / `*azugo.Context` by design, and it is version-pi
 lockstep with `azugo.io/*`. It is not a general-purpose Go toolkit; non-Azugo stacks should
 implement the (small, documented) envelope contract directly.
 
-**Event envelope stability:** from v1.0.0 the `broker.Envelope` JSON schema is
-**append-only** — new optional fields may be added; existing fields and attribute keys are
-never renamed or removed. `Envelope.DataSubjects` values must be **pseudonymous internal
-identity references**, never national identifiers, names, or e-mail addresses.
+**Event envelope stability:** the `broker.Envelope` JSON schema is **append-only** —
+new optional fields may be added; existing fields and attribute keys are never renamed
+or removed. A schema test pins the struct's field set, so a rename or removal fails CI.
+`Envelope.DataSubjects` values must be **pseudonymous internal identity references**,
+never national identifiers, names, or e-mail addresses.
 
 ## Install
 

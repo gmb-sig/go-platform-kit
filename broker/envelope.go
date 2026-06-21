@@ -58,9 +58,12 @@ type Resource struct {
 	ID   string `json:"id,omitempty"`
 }
 
-// Envelope is the common JSON shape every event conforms to; its schema is
-// frozen (append-only) from v1.0.0. go-platform-kit owns the envelope and the
-// correlation it carries; the emitter libraries own its content.
+// Envelope is the common JSON shape every event conforms to. By project rule it
+// evolves append-only — new optional fields only; existing fields and JSON keys
+// are never renamed or removed, so producers and consumers stay wire-compatible
+// without a version gate (a schema test enforces the field set). go-platform-kit
+// owns the envelope and the correlation it carries; the emitter libraries own its
+// content.
 type Envelope struct {
 	// Identity & correlation.
 	EventID       string    `json:"event_id"`
