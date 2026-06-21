@@ -1,3 +1,4 @@
+// Deprecated: moved to github.com/gmb-lib/go-platform-kit (v1.0.0+). Update imports to the new path.
 module github.com/gmb-sig/go-platform-kit
 
 go 1.26
