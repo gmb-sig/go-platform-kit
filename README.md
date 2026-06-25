@@ -1,5 +1,11 @@
 # go-platform-kit
 
+---
+
+Deprecated: moved to github.com/gmb-lib/go-platform-kit (v1.0.0+). Update imports to the new path.
+
+---
+
 The thin, project-specific glue over [Azugo](https://azugo.io) that every backend service
 imports so that **config, telemetry, errors, correlation, and broker access are wired
 identically** across the fleet.
